@@ -1,0 +1,93 @@
+# COVID-19 Data Analysis Project Configuration
+
+# Data Sources
+data_sources:
+  # API Endpoints
+  disease_sh_api: "https://disease.sh/v3/covid-19"
+  covid19_api: "https://api.covid19api.com"
+  owid_csv: "https://covid.ourworldindata.org/data/owid-covid-data.csv"
+  
+  # Johns Hopkins Data (GitHub)
+  jhu_base_url: "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series"
+  jhu_confirmed: "time_series_covid19_confirmed_global.csv"
+  jhu_deaths: "time_series_covid19_deaths_global.csv"
+  jhu_recovered: "time_series_covid19_recovered_global.csv"
+
+# File Paths
+paths:
+  raw_data: "data/raw"
+  processed_data: "data/processed"
+  external_data: "data/external"
+  models: "models"
+  reports: "reports"
+  logs: "logs"
+
+# Dashboard Settings
+dashboard:
+  title: "COVID-19 Veri Analizi Dashboard"
+  page_icon: "🦠"
+  layout: "wide"
+  theme: "light"
+  
+# Analysis Parameters
+analysis:
+  # Countries to analyze by default
+  default_countries: 
+    - "Turkey"
+    - "United States"
+    - "Germany"
+    - "Italy"
+    - "Spain"
+    - "France"
+    
+  # Date range
+  start_date: "2020-01-22"
+  
+  # Moving average windows
+  moving_average_windows: [7, 14, 30]
+  
+  # Prediction parameters
+  prediction_days: 30
+  
+# Visualization Settings
+visualization:
+  # Color palette
+  colors:
+    confirmed: "#1f77b4"
+    deaths: "#d62728"
+    recovered: "#2ca02c"
+    active: "#ff7f0e"
+    
+  # Plot settings
+  figure_size: [12, 8]
+  dpi: 100
+  
+# Machine Learning
+ml:
+  test_size: 0.2
+  random_state: 42
+  cross_validation_folds: 5
+  
+  # Model parameters
+  models:
+    linear_regression:
+      fit_intercept: true
+    
+    random_forest:
+      n_estimators: 100
+      random_state: 42
+      
+    arima:
+      order: [1, 1, 1]
+      seasonal_order: [1, 1, 1, 7]
+
+# Logging
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/covid_analysis.log"
+
+# Cache Settings
+cache:
+  ttl: 3600  # Time to live in seconds (1 hour)
+  directory: ".cache"
