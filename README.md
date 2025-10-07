@@ -47,8 +47,8 @@ Bu proje, COVID-19 pandemisine dair verileri gerçek zamanlı olarak toplamak, d
 
 ### 1. Repository'yi Klonlayın
 ```bash
-git clone https://github.com/your-username/covid19-data-analysis.git
-cd covid19-data-analysis
+git clone https://github.com/caymazyusuf72/covid-19-dasboard.git
+cd covid-19-dasboard
 ```
 
 ### 2. Python Virtual Environment
@@ -78,7 +78,7 @@ streamlit run app.py
 ## 📂 Proje Yapısı
 
 ```
-covid19-data-analysis/
+covid-19-dasboard/
 ├── data/
 │   ├── raw/                 # Ham veri dosyaları
 │   ├── processed/           # İşlenmiş veriler
@@ -245,7 +245,7 @@ Bu proje **MIT License** altında lisanslanmıştır. Detaylar için [LICENSE](L
 
 ## 🐛 Hata Bildirimi
 
-Hata bulduğunuzda [Issues](https://github.com/your-username/covid19-data-analysis/issues) sayfasından bildirebilirsiniz.
+Hata bulduğunuzda [Issues](https://github.com/caymazyusuf72/covid-19-dasboard/issues) sayfasından bildirebilirsiniz.
 
 Lütfen şunları dahil edin:
 - Hata açıklaması
@@ -269,11 +269,17 @@ Lütfen şunları dahil edin:
 - ✅ **Test Coverage**: %85+ kod kapsamı
 - ✅ **Documentation**: Kapsamlı README ve code comments
 
----
+## 📞 İletişim
 
+- **GitHub**: [covid-19-dasboard](https://github.com/caymazyusuf72/covid-19-dasboard)
+- **Issues**: [Bug Reports & Feature Requests](https://github.com/caymazyusuf72/covid-19-dasboard/issues)
+- **Discussions**: [Q&A ve Community](https://github.com/caymazyusuf72/covid-19-dasboard/discussions)
+- **Geliştirici**: [@caymazyusuf72](https://github.com/caymazyusuf72)
 
 ---
 
 ⭐ **Bu projeyi faydalı bulduysanız GitHub'da star vermeyi unutmayın!**
 
-📊 **COVID-19 Data Analysis Platform** - *Stay Informed, Stay Safe*
+🦠 **COVID-19 Dashboard** - *Stay Informed, Stay Safe*
+
+**Live Demo**: [COVID-19 Dashboard](https://github.com/caymazyusuf72/covid-19-dasboard)
