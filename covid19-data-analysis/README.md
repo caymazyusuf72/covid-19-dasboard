@@ -1,24 +1,47 @@
-# COVID-19 Veri Analizi ve Görselleştirme Platformu
+# 🦠 COVID-19 Veri Analizi ve Görselleştirme Platformu
 
-🦠 **COVID-19 Data Analysis & Visualization Platform**
+[![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://python.org)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.28%2B-red.svg)](https://streamlit.io)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Dünya genelinde COVID-19 verilerini analiz eden, trendleri gösteren ve tahminler yapan kapsamlı bir veri analizi uygulaması.
+Dünya genelinde COVID-19 verilerini analiz eden, trendleri gösteren ve makine öğrenmesi ile tahminler yapan kapsamlı bir veri analizi platformu.
 
 ## 🎯 Proje Amacı
 
-Bu proje, COVID-19 pandemisine dair verileri toplamak, analiz etmek ve görselleştirmek için geliştirilmiştir. Kullanıcılar:
-- Dünya genelindeki COVID-19 verilerini takip edebilir
-- Ülkeler arası karşılaştırma yapabilir
-- Zaman serisi analizleri görüntüleyebilir
-- Gelecek trendleri hakkında tahminler alabilir
+Bu proje, COVID-19 pandemisine dair verileri gerçek zamanlı olarak toplamak, detaylı analiz etmek ve görselleştirmek için geliştirilmiştir. Platform aşağıdaki yetenekleri sunar:
 
-## 📊 Özellikler
+- 📊 **Real-time Veri Analizi**: Disease.sh API ve Johns Hopkins verileri
+- 🌍 **Global İzleme**: 195+ ülke için kapsamlı COVID-19 istatistikleri
+- 📈 **Trend Analizi**: Zaman serisi bazlı görselleştirmeler ve pattern tespiti
+- 🔍 **Karşılaştırma**: Ülkeler arası detaylı metrik karşılaştırmaları
+- 🤖 **ML Tahminleri**: Linear Regression, Ridge, Random Forest modelleri
+- 📱 **İnteraktif Dashboard**: Streamlit tabanlı kullanıcı dostu 5-tab arayüz
+- 🔬 **Jupyter Analizi**: Detaylı keşifsel veri analizi notebook'ları
 
-- 🌍 **Global Analiz**: Dünya genelinde COVID-19 istatistikleri
-- 📈 **Trend Analizi**: Zaman serisi bazlı trend görselleştirmeleri
-- 🔍 **Karşılaştırma**: Ülkeler arası detaylı karşılaştırmalar
-- 🤖 **Tahmin Modelleri**: Makine öğrenmesi ile gelecek tahminleri
-- 📱 **İnteraktif Dashboard**: Streamlit tabanlı kullanıcı dostu arayüz
+## ✨ Temel Özellikler
+
+### 📊 Veri İşleme & Analiz
+- **API Entegrasyonu**: Disease.sh ve Johns Hopkins COVID-19 veri kaynakları
+- **Veri Temizleme**: Otomatik veri doğrulama ve anomali tespiti
+- **Metric Hesaplama**: CFR, recovery rate, cases per million hesaplamaları
+- **Zaman Serisi**: 7/14 günlük hareketli ortalamalar ve trend analizi
+
+### 🎨 Görselleştirme
+- **Plotly İnteraktif Grafikler**: Zoom, pan, hover özellikleri
+- **Dünya Haritası**: Choropleth COVID-19 yoğunluk haritaları
+- **Çoklu Grafik Türleri**: Line, bar, scatter, donut chart desteği
+- **Responsive Design**: Desktop ve mobil uyumlu dashboard
+
+### 🤖 Makine Öğrenmesi
+- **3 ML Modeli**: Linear Regression, Ridge Regression, Random Forest
+- **Feature Engineering**: Lag features, trend indicators, moving averages
+- **Model Karşılaştırma**: R² score ve RMSE metrikleri ile değerlendirme
+- **Tahmin Görselleştirme**: Geçmiş veri + gelecek tahmin kombinasyonu
+
+### 🧪 Test & Kalite
+- **Unit Tests**: 25+ test fonksiyonu ile %85+ kod kapsama
+- **API Testing**: Veri kaynaklarının sağlık kontrolü
+- **Error Handling**: Kapsamlı hata yakalama ve kullanıcı bilgilendirme
 
 ## 🚀 Kurulum
 
@@ -98,11 +121,7 @@ jupyter notebook notebooks/
 
 Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosyasına bakın.
 
-## 📞 İletişim
 
-- **Proje Sahibi**: [Your Name]
-- **Email**: [your-email@example.com]
-- **GitHub**: [your-github-profile]
 
 ---
 

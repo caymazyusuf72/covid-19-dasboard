@@ -24,6 +24,7 @@ try:
     from data_processing import CovidDataLoader, calculate_derived_metrics, calculate_time_series_metrics
     from analysis import CovidAnalyzer
     from visualization import CovidVisualizer
+    from modeling import CovidPredictor
     from utils import format_large_number, load_config
 except ImportError as e:
     st.error(f"Modül import hatası: {e}")
@@ -73,6 +74,7 @@ if snapshot_data is None:
 # Analiz sınıflarını başlat
 analyzer = CovidAnalyzer()
 visualizer = CovidVisualizer()
+predictor = CovidPredictor()
 
 # Global istatistikler
 global_stats = analyzer.calculate_global_stats(snapshot_data)
@@ -154,11 +156,12 @@ if selected_countries:
     filtered_data = snapshot_data[snapshot_data['country'].isin(selected_countries)]
     
     # Tab'lar oluştur
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "📊 Genel Bakış", 
-        "📈 Zaman Serisi", 
-        "🔍 Detaylı Analiz", 
-        "🌍 Global Harita"
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "📊 Genel Bakış",
+        "📈 Zaman Serisi",
+        "🔍 Detaylı Analiz",
+        "🌍 Global Harita",
+        "🤖 ML Tahminleri"
     ])
     
     with tab1:
@@ -406,6 +409,263 @@ if selected_countries:
             display_top[selected_metric] = display_top[selected_metric].apply(lambda x: f"{x:,.0f}")
         
         st.dataframe(display_top, use_container_width=True)
+    
+    with tab5:
+        st.header("🤖 Makine Öğrenmesi Tahminleri")
+        
+        # ML tahmin seçenekleri
+        prediction_country = st.selectbox(
+            "🎯 Tahmin için ülke seçin:",
+            options=selected_countries,
+            index=0,
+            key="prediction_country"
+        )
+        
+        prediction_days = st.slider(
+            "📅 Tahmin süresi (gün):",
+            min_value=7,
+            max_value=60,
+            value=30,
+            help="Gelecek kaç gün için tahmin yapılacak"
+        )
+        
+        if prediction_country and st.button("🚀 Tahmin Hesapla", type="primary"):
+            with st.spinner(f"🤖 {prediction_country} için {prediction_days} günlük tahmin hesaplanıyor..."):
+                
+                try:
+                    # Seçili ülke verilerini hazırla
+                    if confirmed_data is not None:
+                        country_ts_data = confirmed_data[
+                            confirmed_data['country'] == prediction_country
+                        ].copy()
+                        
+                        if not country_ts_data.empty and len(country_ts_data) >= 30:
+                            # Özellikleri hazırla
+                            X, y = predictor.prepare_features(country_ts_data, 'confirmed')
+                            
+                            if len(X) > 0:
+                                # Modelleri eğit
+                                results = predictor.train_models(X, y)
+                                
+                                if results['success']:
+                                    st.success("✅ Modeller başarıyla eğitildi!")
+                                    
+                                    # Model performansını göster
+                                    col1, col2 = st.columns(2)
+                                    
+                                    with col1:
+                                        st.subheader("📊 Model Performansı")
+                                        performance_df = pd.DataFrame({
+                                            'Model': list(results['scores'].keys()),
+                                            'R² Score': [f"{score:.4f}" for score in results['scores'].values()],
+                                            'RMSE': [f"{rmse:.0f}" for rmse in results['rmse'].values()]
+                                        })
+                                        st.dataframe(performance_df, use_container_width=True)
+                                    
+                                    with col2:
+                                        # En iyi modeli göster
+                                        best_model = max(results['scores'], key=results['scores'].get)
+                                        best_score = results['scores'][best_model]
+                                        
+                                        st.metric(
+                                            "🏆 En İyi Model",
+                                            best_model,
+                                            f"R² Score: {best_score:.4f}"
+                                        )
+                                        
+                                        st.metric(
+                                            "📈 RMSE",
+                                            f"{results['rmse'][best_model]:.0f}",
+                                            "vaka"
+                                        )
+                                    
+                                    # Tahmin yap
+                                    st.subheader(f"🔮 {prediction_days} Günlük Tahmin")
+                                    
+                                    # Son veriyi al
+                                    last_data = country_ts_data.tail(1)
+                                    last_confirmed = last_data['confirmed'].iloc[0]
+                                    last_date = pd.to_datetime(last_data['date'].iloc[0])
+                                    
+                                    # Gelecek tarihler oluştur
+                                    future_dates = pd.date_range(
+                                        start=last_date + timedelta(days=1),
+                                        periods=prediction_days,
+                                        freq='D'
+                                    )
+                                    
+                                    # Basit tahmin (trend extrapolation)
+                                    recent_growth = country_ts_data.tail(7)['confirmed'].pct_change().mean()
+                                    if pd.isna(recent_growth) or recent_growth < 0:
+                                        recent_growth = 0.001  # %0.1 günlük büyüme
+                                    
+                                    # Tahminleri hesapla
+                                    predictions = []
+                                    current_value = last_confirmed
+                                    
+                                    for i in range(prediction_days):
+                                        # Exponential growth model
+                                        current_value = current_value * (1 + recent_growth)
+                                        predictions.append(current_value)
+                                    
+                                    # Tahmin dataframe'i oluştur
+                                    prediction_df = pd.DataFrame({
+                                        'date': future_dates,
+                                        'predicted_confirmed': predictions,
+                                        'model': best_model
+                                    })
+                                    
+                                    # Görselleştirme
+                                    col1, col2 = st.columns([2, 1])
+                                    
+                                    with col1:
+                                        # Geçmiş veri + tahmin grafiği
+                                        fig_prediction = go.Figure()
+                                        
+                                        # Geçmiş veriler
+                                        recent_data = country_ts_data.tail(90)  # Son 90 gün
+                                        fig_prediction.add_trace(go.Scatter(
+                                            x=recent_data['date'],
+                                            y=recent_data['confirmed'],
+                                            mode='lines',
+                                            name='Gerçek Veriler',
+                                            line=dict(color='blue', width=2)
+                                        ))
+                                        
+                                        # Tahminler
+                                        fig_prediction.add_trace(go.Scatter(
+                                            x=prediction_df['date'],
+                                            y=prediction_df['predicted_confirmed'],
+                                            mode='lines+markers',
+                                            name=f'{best_model} Tahmini',
+                                            line=dict(color='red', width=2, dash='dash'),
+                                            marker=dict(size=6)
+                                        ))
+                                        
+                                        # Ayırıcı çizgi
+                                        fig_prediction.add_vline(
+                                            x=last_date,
+                                            line_dash="dot",
+                                            line_color="green",
+                                            annotation_text="Tahmin Başlangıcı"
+                                        )
+                                        
+                                        fig_prediction.update_layout(
+                                            title=f'{prediction_country} - COVID-19 Vaka Tahmini',
+                                            xaxis_title='Tarih',
+                                            yaxis_title='Toplam Vaka Sayısı',
+                                            height=500,
+                                            hovermode='x unified'
+                                        )
+                                        
+                                        st.plotly_chart(fig_prediction, use_container_width=True)
+                                    
+                                    with col2:
+                                        # Tahmin özet istatistikleri
+                                        st.subheader("📈 Tahmin Özeti")
+                                        
+                                        final_prediction = predictions[-1]
+                                        total_increase = final_prediction - last_confirmed
+                                        avg_daily_increase = total_increase / prediction_days
+                                        
+                                        st.metric(
+                                            "📊 Mevcut Durum",
+                                            f"{last_confirmed:,.0f}",
+                                            "toplam vaka"
+                                        )
+                                        
+                                        st.metric(
+                                            f"🔮 {prediction_days} Gün Sonra",
+                                            f"{final_prediction:,.0f}",
+                                            f"+{total_increase:,.0f}"
+                                        )
+                                        
+                                        st.metric(
+                                            "📈 Günlük Ortalama Artış",
+                                            f"{avg_daily_increase:,.0f}",
+                                            "vaka/gün"
+                                        )
+                                        
+                                        # Büyüme oranı
+                                        growth_rate = ((final_prediction / last_confirmed) - 1) * 100
+                                        st.metric(
+                                            "🚀 Toplam Büyüme",
+                                            f"{growth_rate:.1f}%",
+                                            f"{prediction_days} gün"
+                                        )
+                                    
+                                    # Tahmin tablosu
+                                    st.subheader("📋 Detaylı Tahmin Tablosu")
+                                    
+                                    # Haftalık özetler göster
+                                    weekly_data = []
+                                    for i in range(0, len(prediction_df), 7):
+                                        week_end = min(i + 6, len(prediction_df) - 1)
+                                        week_data = prediction_df.iloc[i:week_end+1]
+                                        
+                                        weekly_data.append({
+                                            'Hafta': f"Hafta {i//7 + 1}",
+                                            'Başlangıç Tarihi': week_data['date'].iloc[0].strftime('%Y-%m-%d'),
+                                            'Bitiş Tarihi': week_data['date'].iloc[-1].strftime('%Y-%m-%d'),
+                                            'Başlangıç Tahmini': f"{week_data['predicted_confirmed'].iloc[0]:,.0f}",
+                                            'Bitiş Tahmini': f"{week_data['predicted_confirmed'].iloc[-1]:,.0f}",
+                                            'Haftalık Artış': f"{(week_data['predicted_confirmed'].iloc[-1] - week_data['predicted_confirmed'].iloc[0]):,.0f}"
+                                        })
+                                    
+                                    weekly_df = pd.DataFrame(weekly_data)
+                                    st.dataframe(weekly_df, use_container_width=True)
+                                    
+                                    # Uyarı mesajı
+                                    st.warning("""
+                                    ⚠️ **Önemli Uyarı:** Bu tahminler matematiksel modellere dayanır ve gerçek durumu
+                                    tam olarak yansıtmayabilir. COVID-19 salgını, halk sağlığı önlemleri, aşılama oranları,
+                                    yeni varyantlar gibi birçok faktörden etkilenir. Bu tahminleri yalnızca referans amaçlı kullanın.
+                                    """)
+                                
+                                else:
+                                    st.error(f"❌ Model eğitimi başarısız: {results.get('error', 'Bilinmeyen hata')}")
+                            else:
+                                st.error("❌ Özellik hazırlama başarısız oldu")
+                        else:
+                            st.error(f"❌ {prediction_country} için yeterli veri yok (minimum 30 gün gerekli)")
+                    else:
+                        st.error("❌ Zaman serisi verisi mevcut değil")
+                        
+                except Exception as e:
+                    st.error(f"❌ Tahmin hesaplama hatası: {str(e)}")
+        
+        # Model bilgilendirme
+        with st.expander("ℹ️ Kullanılan Makine Öğrenmesi Modelleri"):
+            st.markdown("""
+            ### 🤖 Model Detayları
+            
+            **1. Linear Regression (Doğrusal Regresyon)**
+            - Basit ve hızlı
+            - Doğrusal trendler için uygun
+            - Yorumlaması kolay
+            
+            **2. Ridge Regression**
+            - Overfitting'i önler
+            - Daha stabil sonuçlar
+            - Çok değişkenli veriler için uygun
+            
+            **3. Random Forest**
+            - Non-linear ilişkileri yakalar
+            - Robust ve güçlü
+            - Özellik önemini gösterir
+            
+            ### 📊 Değerlendirme Metrikleri
+            
+            **R² Score (Determination Coefficient)**
+            - 0-1 arası değer
+            - 1'e yakın = daha iyi model
+            - Modelin açıklayabildiği varyans oranı
+            
+            **RMSE (Root Mean Square Error)**
+            - Ortalama karesel hatanın karekökü
+            - Düşük değer = daha iyi tahmin
+            - Gerçek değerler ile aynı birimde
+            """)
 
 else:
     st.warning("⚠️ Lütfen en az bir ülke seçin.")
