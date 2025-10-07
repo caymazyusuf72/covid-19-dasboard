@@ -29,6 +29,11 @@ def load_config(config_path: str = "config.yaml") -> Dict:
         yaml.YAMLError: YAML parsing hatası
     """
     try:
+        # Eğer relative path ise, script'in parent dizininden ara
+        if not os.path.isabs(config_path):
+            script_dir = os.path.dirname(os.path.dirname(__file__))  # src klasöründen bir üst seviye
+            config_path = os.path.join(script_dir, config_path)
+        
         with open(config_path, 'r', encoding='utf-8') as file:
             config = yaml.safe_load(file)
         return config

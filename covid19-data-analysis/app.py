@@ -19,7 +19,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Proje modüllerini import et
-sys.path.append('src')
+sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 try:
     from data_processing import CovidDataLoader, calculate_derived_metrics, calculate_time_series_metrics
     from analysis import CovidAnalyzer
@@ -187,7 +187,7 @@ if selected_countries:
                         color_continuous_scale='viridis'
                     )
                     fig.update_layout(height=500)
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width="stretch")
                 
                 elif chart_type == "Scatter Plot":
                     x_metric = 'total_cases'
@@ -206,7 +206,7 @@ if selected_countries:
                         }
                     )
                     fig.update_layout(height=500)
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width="stretch")
             
             with col2:
                 # Karşılaştırma tablosu
@@ -222,7 +222,7 @@ if selected_countries:
                     if col in display_df.columns:
                         display_df[col] = display_df[col].apply(lambda x: f"{x:,.0f}" if pd.notna(x) else "N/A")
                 
-                st.dataframe(display_df, use_container_width=True)
+                st.dataframe(display_df, width="stretch")
     
     with tab2:
         st.header("📈 Zaman Serisi Analizi")
@@ -265,7 +265,7 @@ if selected_countries:
                         labels={'date': 'Tarih', 'confirmed': 'Toplam Vaka'}
                     )
                     fig_cumulative.update_layout(height=400)
-                    st.plotly_chart(fig_cumulative, use_container_width=True)
+                    st.plotly_chart(fig_cumulative, width="stretch")
                 
                 with col2:
                     # Günlük yeni vakalar
@@ -279,7 +279,7 @@ if selected_countries:
                             labels={'date': 'Tarih', 'new_confirmed': 'Yeni Vaka'}
                         )
                         fig_daily.update_layout(height=400)
-                        st.plotly_chart(fig_daily, use_container_width=True)
+                        st.plotly_chart(fig_daily, width="stretch")
                 
                 # Hareketli ortalama
                 if 'confirmed_7day_avg' in time_filtered_data.columns:
@@ -293,7 +293,7 @@ if selected_countries:
                         labels={'date': 'Tarih', 'confirmed_7day_avg': '7 Gün Ortalaması'}
                     )
                     fig_ma.update_layout(height=400)
-                    st.plotly_chart(fig_ma, use_container_width=True)
+                    st.plotly_chart(fig_ma, width="stretch")
         else:
             st.warning("⚠️ Zaman serisi verisi mevcut değil")
     
@@ -354,7 +354,7 @@ if selected_countries:
                         title=f"{selected_country} Vaka Dağılımı",
                         height=400
                     )
-                    st.plotly_chart(fig_donut, use_container_width=True)
+                    st.plotly_chart(fig_donut, width="stretch")
                 
                 # Trend analizi (eğer zaman serisi varsa)
                 if confirmed_data is not None:
@@ -388,27 +388,33 @@ if selected_countries:
             geo=dict(showframe=False, showcoastlines=True)
         )
         
-        st.plotly_chart(fig_map, use_container_width=True)
+        st.plotly_chart(fig_map, width="stretch")
         
         # En çok etkilenen ülkeler
         st.subheader("🏆 En Çok Etkilenen Ülkeler")
         
         top_n = st.slider("Gösterilecek ülke sayısı:", 5, 20, 10)
         
-        top_countries = snapshot_data.nlargest(top_n, selected_metric)[
-            ['country', selected_metric, 'total_cases', 'total_deaths']
-        ]
+        # Duplicate columns'u önlemek için set kullan
+        columns_to_show = list(dict.fromkeys(['country', selected_metric, 'total_cases', 'total_deaths']))
+        top_countries = snapshot_data.nlargest(top_n, selected_metric)[columns_to_show]
         
-        # Formatla
+        # Basitleştirilmiş formatting
         display_top = top_countries.copy()
-        for col in ['total_cases', 'total_deaths']:
-            if col in display_top.columns:
-                display_top[col] = display_top[col].apply(lambda x: f"{x:,}" if pd.notna(x) else "N/A")
         
-        if selected_metric not in ['total_cases', 'total_deaths']:
-            display_top[selected_metric] = display_top[selected_metric].apply(lambda x: f"{x:,.0f}")
+        try:
+            # Sadece sayıları formatla, hata varsa görmezden gel
+            for col in ['total_cases', 'total_deaths']:
+                if col in display_top.columns:
+                    display_top[col] = display_top[col].astype(str)
+            
+            if selected_metric not in ['total_cases', 'total_deaths'] and selected_metric in display_top.columns:
+                display_top[selected_metric] = display_top[selected_metric].astype(str)
+        except:
+            # Formatting hatası varsa, olduğu gibi bırak
+            pass
         
-        st.dataframe(display_top, use_container_width=True)
+        st.dataframe(display_top, width="stretch")
     
     with tab5:
         st.header("🤖 Makine Öğrenmesi Tahminleri")
@@ -460,7 +466,7 @@ if selected_countries:
                                             'R² Score': [f"{score:.4f}" for score in results['scores'].values()],
                                             'RMSE': [f"{rmse:.0f}" for rmse in results['rmse'].values()]
                                         })
-                                        st.dataframe(performance_df, use_container_width=True)
+                                        st.dataframe(performance_df, width="stretch")
                                     
                                     with col2:
                                         # En iyi modeli göster
@@ -558,7 +564,7 @@ if selected_countries:
                                             hovermode='x unified'
                                         )
                                         
-                                        st.plotly_chart(fig_prediction, use_container_width=True)
+                                        st.plotly_chart(fig_prediction, width="stretch")
                                     
                                     with col2:
                                         # Tahmin özet istatistikleri
@@ -613,7 +619,7 @@ if selected_countries:
                                         })
                                     
                                     weekly_df = pd.DataFrame(weekly_data)
-                                    st.dataframe(weekly_df, use_container_width=True)
+                                    st.dataframe(weekly_df, width="stretch")
                                     
                                     # Uyarı mesajı
                                     st.warning("""
